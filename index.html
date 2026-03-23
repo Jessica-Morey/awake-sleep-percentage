@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Track your awake and sleep time progress with percentage">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- iOS Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Awake/Sleep">
+    <link rel="apple-touch-icon" href="icon-180.png">
+
+    <title>Awake/Sleep Time Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .settings-section {
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .settings-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .time-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        input[type="time"] {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="time"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 32px;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .status-card.sleeping {
+            background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+        }
+
+        .status-icon {
+            text-align: center;
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .status-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .current-time {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .progress-section {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar-container {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            height: 40px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            background: white;
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .info-card {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .current-time {
+                font-size: 36px;
+            }
+
+            .time-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Awake/Sleep Tracker</h1>
+        <p class="subtitle">Track your daily time progress</p>
+
+        <div class="settings-section">
+            <div class="settings-title">⚙️ Settings</div>
+            <div class="time-inputs">
+                <div class="input-group">
+                    <label class="input-label">Wake Up Time</label>
+                    <input type="time" id="wakeTime" value="07:00" onchange="saveSettings()">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Sleep Time</label>
+                    <input type="time" id="sleepTime" value="23:00" onchange="saveSettings()">
+                </div>
+            </div>
+        </div>
+
+        <div class="status-card" id="statusCard">
+            <div class="status-icon" id="statusIcon">☀️</div>
+            <div class="status-title" id="statusTitle">Awake Time</div>
+            <div class="current-time" id="currentTime">00:00:00</div>
+
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span id="progressLabel">Progress</span>
+                    <span id="progressPercentage">0.000%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar" style="width: 0%">
+                        <span id="progressBarText"></span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="elapsedPercentage">0.000%</div>
+                        <div class="stat-label">Elapsed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="remainingPercentage">100.000%</div>
+                        <div class="stat-label">Remaining</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-label">Wake Up Time</span>
+                <span class="info-value" id="displayWakeTime">07:00</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Sleep Time</span>
+                <span class="info-value" id="displaySleepTime">23:00</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Awake Duration</span>
+                <span class="info-value" id="awakeDuration">16h 0m</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Sleep Duration</span>
+                <span class="info-value" id="sleepDuration">8h 0m</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Time Elapsed</span>
+                <span class="info-value" id="timeElapsed">0h 0m</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Time Remaining</span>
+                <span class="info-value" id="timeRemaining">0h 0m</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let wakeTime = '07:00';
+        let sleepTime = '23:00';
+
+        // Load settings from localStorage
+        function loadSettings() {
+            const savedWakeTime = localStorage.getItem('wakeTime');
+            const savedSleepTime = localStorage.getItem('sleepTime');
+
+            if (savedWakeTime) {
+                wakeTime = savedWakeTime;
+                document.getElementById('wakeTime').value = wakeTime;
+            }
+
+            if (savedSleepTime) {
+                sleepTime = savedSleepTime;
+                document.getElementById('sleepTime').value = sleepTime;
+            }
+        }
+
+        // Save settings to localStorage
+        function saveSettings() {
+            wakeTime = document.getElementById('wakeTime').value;
+            sleepTime = document.getElementById('sleepTime').value;
+
+            localStorage.setItem('wakeTime', wakeTime);
+            localStorage.setItem('sleepTime', sleepTime);
+
+            updateDisplay();
+        }
+
+        // Convert time string to minutes
+        function timeToMinutes(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        }
+
+        // Convert seconds to time string
+        function secondsToTime(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        // Update display
+        function updateDisplay() {
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const currentSeconds = now.getSeconds();
+            const currentTotalSeconds = currentHours * 3600 + currentMinutes * 60 + currentSeconds;
+
+            // Display current time
+            const timeString = String(currentHours).padStart(2, '0') + ':' +
+                             String(currentMinutes).padStart(2, '0') + ':' +
+                             String(currentSeconds).padStart(2, '0');
+            document.getElementById('currentTime').textContent = timeString;
+
+            const wakeSeconds = timeToMinutes(wakeTime) * 60;
+            const sleepSeconds = timeToMinutes(sleepTime) * 60;
+            const secondsInDay = 86400;
+
+            let isAwake;
+            let totalDuration;
+            let elapsed;
+            let periodStart;
+            let periodEnd;
+
+            // Determine if awake or sleeping
+            if (sleepSeconds > wakeSeconds) {
+                // Normal case: wake time before sleep time in the same day
+                isAwake = currentTotalSeconds >= wakeSeconds && currentTotalSeconds < sleepSeconds;
+                if (isAwake) {
+                    periodStart = wakeSeconds;
+                    periodEnd = sleepSeconds;
+                    totalDuration = sleepSeconds - wakeSeconds;
+                    elapsed = currentTotalSeconds - wakeSeconds;
+                } else {
+                    // Sleeping
+                    if (currentTotalSeconds >= sleepSeconds) {
+                        // After sleep time today
+                        periodStart = sleepSeconds;
+                        periodEnd = wakeSeconds + secondsInDay;
+                        totalDuration = secondsInDay - sleepSeconds + wakeSeconds;
+                        elapsed = currentTotalSeconds - sleepSeconds;
+                    } else {
+                        // Before wake time today
+                        periodStart = sleepSeconds - secondsInDay;
+                        periodEnd = wakeSeconds;
+                        totalDuration = secondsInDay - sleepSeconds + wakeSeconds;
+                        elapsed = secondsInDay - sleepSeconds + currentTotalSeconds;
+                    }
+                }
+            } else {
+                // Sleep time before wake time (crosses midnight)
+                isAwake = currentTotalSeconds >= wakeSeconds || currentTotalSeconds < sleepSeconds;
+                if (isAwake) {
+                    if (currentTotalSeconds >= wakeSeconds) {
+                        periodStart = wakeSeconds;
+                        periodEnd = sleepSeconds + secondsInDay;
+                        totalDuration = secondsInDay - wakeSeconds + sleepSeconds;
+                        elapsed = currentTotalSeconds - wakeSeconds;
+                    } else {
+                        periodStart = wakeSeconds - secondsInDay;
+                        periodEnd = sleepSeconds;
+                        totalDuration = secondsInDay - wakeSeconds + sleepSeconds;
+                        elapsed = secondsInDay - wakeSeconds + currentTotalSeconds;
+                    }
+                } else {
+                    // Sleeping (between sleep time and wake time)
+                    periodStart = sleepSeconds;
+                    periodEnd = wakeSeconds;
+                    totalDuration = wakeSeconds - sleepSeconds;
+                    elapsed = currentTotalSeconds - sleepSeconds;
+                }
+            }
+
+            const remaining = totalDuration - elapsed;
+            const elapsedPercentage = (elapsed / totalDuration) * 100;
+            const remainingPercentage = (remaining / totalDuration) * 100;
+
+            // Update UI
+            const statusCard = document.getElementById('statusCard');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusTitle = document.getElementById('statusTitle');
+
+            if (isAwake) {
+                statusCard.classList.remove('sleeping');
+                statusIcon.textContent = '☀️';
+                statusTitle.textContent = 'Awake Time';
+            } else {
+                statusCard.classList.add('sleeping');
+                statusIcon.textContent = '🌙';
+                statusTitle.textContent = 'Sleep Time';
+            }
+
+            // Update progress bar
+            document.getElementById('progressBar').style.width = elapsedPercentage + '%';
+            document.getElementById('progressPercentage').textContent = elapsedPercentage.toFixed(3) + '%';
+            document.getElementById('elapsedPercentage').textContent = elapsedPercentage.toFixed(3) + '%';
+            document.getElementById('remainingPercentage').textContent = remainingPercentage.toFixed(3) + '%';
+
+            // Update info card
+            document.getElementById('displayWakeTime').textContent = wakeTime;
+            document.getElementById('displaySleepTime').textContent = sleepTime;
+
+            const awakeDuration = sleepSeconds > wakeSeconds
+                ? sleepSeconds - wakeSeconds
+                : secondsInDay - wakeSeconds + sleepSeconds;
+            const sleepDuration = secondsInDay - awakeDuration;
+
+            document.getElementById('awakeDuration').textContent = secondsToTime(awakeDuration);
+            document.getElementById('sleepDuration').textContent = secondsToTime(sleepDuration);
+            document.getElementById('timeElapsed').textContent = secondsToTime(Math.floor(elapsed));
+            document.getElementById('timeRemaining').textContent = secondsToTime(Math.floor(remaining));
+        }
+
+        // Initialize
+        loadSettings();
+        updateDisplay();
+
+        // Update every second
+        setInterval(updateDisplay, 1000);
+
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/awake-sleep-percentage/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt (Android)
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            setTimeout(() => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        } else {
+                            console.log('User dismissed the install prompt');
+                        }
+                        deferredPrompt = null;
+                    });
+                }
+            }, 1000);
+        });
+
+        // iOS Install Banner
+        function isIOS() {
+            return /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+        }
+
+        function isInStandaloneMode() {
+            return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+        }
+
+        function closeIosBanner() {
+            const banner = document.getElementById('iosInstallBanner');
+            if (banner) {
+                banner.style.display = 'none';
+                localStorage.setItem('awakeSleepIosInstallBannerClosed', 'true');
+            }
+        }
+
+        window.addEventListener('load', () => {
+            const bannerClosed = localStorage.getItem('awakeSleepIosInstallBannerClosed');
+
+            if (isIOS() && !isInStandaloneMode() && !bannerClosed) {
+                const banner = document.createElement('div');
+                banner.id = 'iosInstallBanner';
+                banner.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    left: 20px;
+                    right: 20px;
+                    background: rgba(255, 255, 255, 0.98);
+                    border-radius: 16px;
+                    padding: 16px 20px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    z-index: 1000;
+                    animation: slideUp 0.3s ease-out;
+                `;
+                banner.innerHTML = `
+                    <div style="font-size: 32px;">⏰</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: #333; font-size: 14px; margin-bottom: 2px;">Add to Home Screen</div>
+                        <div style="color: #666; font-size: 12px;">Tap Share → Add to Home Screen</div>
+                    </div>
+                    <button onclick="closeIosBanner()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 0; width: 32px; height: 32px;">×</button>
+                `;
+                document.body.appendChild(banner);
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideUp {
+                        from {
+                            transform: translateY(100%);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateY(0);
+                            opacity: 1;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                setTimeout(() => {
+                    banner.style.display = 'flex';
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
